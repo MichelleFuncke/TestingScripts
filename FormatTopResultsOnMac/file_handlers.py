@@ -71,6 +71,15 @@ class ResultsFromTop(object):
     def get_final_values(self):
         return [self.date] + self.process_values + self.cpu_percentages
 
+    def write_to_csv(self, file_path, include_headers=False):
+        with open(file_path, 'a') as f:
+            if include_headers:
+                headers_line = ','.join(self.get_final_headers())
+                f.writelines(headers_line + '\n')
+
+            values_line = ','.join(self.get_final_values())
+            f.writelines(values_line + '\n')
+
 
 class ProcessSelector(object):
     """This class handles selecting the python process that was being tested. Note: the process name can be changed."""

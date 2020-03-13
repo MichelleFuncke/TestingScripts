@@ -44,12 +44,35 @@ class SummaryResults(object):
         self.column_names = ['file', 'TIME', 'max MEM', 'avg MEM', 'avg cpu']
         self.results = pd.DataFrame(columns=self.column_names)
 
-    def add_row(self, value_list):
+    def __add_row(self, value_list):
         series = pd.Series(value_list, index=self.column_names)
         self.results = self.results.append(series, ignore_index=True)
 
     def sort_by_file(self):
-        return self.results.sort_values(by=['file'])
+        self.results = self.results.sort_values(by=['file'])
+
+    def __add_item(self, file_name):
+        file_data = FileResults(file_name)
+        self.__add_row(file_data.get_summary_results())
+
+    def add_items(self, files):
+        for item in files:
+            self.__add_item(item)
+
+    def to_csv(self, file_name):
+        self.results.to_csv(file_name)
+
+
+def calculate_averages(dir_path, results_path):
+    files = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if f.lower().endswith('.csv')]
+    files.sort(key=os.path.getmtime)
+
+    result_table = SummaryResults()
+    result_table.add_items(files)
+    result_table.sort_by_file()
+
+    # Save results to file
+    result_table.to_csv(results_path)
 
 
 if __name__ == "__main__":
@@ -57,20 +80,6 @@ if __name__ == "__main__":
     parent_directory_on_pc = '/Users/mfuncke/Downloads/'
     test_run_folder = 'ProjectStatusDump'
     full_path_to_formatted = os.path.join(parent_directory_on_pc, test_run_folder, 'formatted_results')
-    files = [os.path.join(full_path_to_formatted, f) for f in os.listdir(full_path_to_formatted) if f.lower().endswith('.csv')]
-    files.sort(key=os.path.getmtime)
-
-    result_table = SummaryResults()
-
-    for item in files:
-        file_data = FileResults(item)
-        temp = file_data.get_summary_results()
-        # Store these stats in a table, the file name should be in the table
-        result_table.add_row(temp)
-
-    # Sort
-    result_table = result_table.sort_by_file()
-
-    # Save results to file
     averages_file_path = os.path.join(parent_directory_on_pc, 'Averages.csv')
-    result_table.to_csv(averages_file_path)
+
+    calculate_averages(full_path_to_formatted, averages_file_path)
