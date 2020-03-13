@@ -2,9 +2,51 @@ import pandas as pd
 import os
 
 
-def convert_mem_column(table):
-    table['MEM'].replace('M', '', regex=True, inplace=True)
-    table['MEM'] = pd.to_numeric(table['MEM'], errors='coerce')
+class FileResults(object):
+    """The class handles reading data from a file and formatting it"""
+    def __init__(self, file_name):
+        self.data_table = pd.read_csv(file_name)
+
+        self.__convert_time_column()
+        self.__convert_mem_column()
+        self.__drop_unnecessary_columns()
+        # Drop rows that have nans
+        self.data_table.dropna(inplace=True)
+
+    def __convert_time_column(self):
+        self.data_table['TIME'] = pd.to_datetime(self.data_table['TIME'], format='%M:%S.%f', errors='coerce')
+
+    def __convert_mem_column(self):
+        self.data_table['MEM'].replace('M', '', regex=True, inplace=True)
+        self.data_table['MEM'] = pd.to_numeric(self.data_table['MEM'], errors='coerce')
+
+    def __drop_unnecessary_columns(self):
+        columns = ['#MREGS', 'RPRVT', 'VPRVT', 'VSIZE', 'KPRVT', 'KSHRD']
+        self.data_table.drop(columns, axis=1, inplace=True)
+
+    def get_summary_results(self, file_name):
+        # Get the duration
+        duration = self.data_table['TIME'].max().time()
+        # Get the max MEM
+        max_memory = self.data_table['MEM'].max()
+        # Get the average user cpu
+        average_cpu = self.data_table['user%'].mean().round(2)
+        average_memory = self.data_table['MEM'].mean().round(1)
+        return [file_name, duration, max_memory, average_memory, average_cpu]
+
+
+class SummaryResults(object):
+    """This class handles storing the overall data from the files"""
+    def __init__(self):
+        self.column_names = ['file', 'TIME', 'max MEM', 'avg MEM', 'avg cpu']
+        self.results = pd.DataFrame(columns=self.column_names)
+
+    def add_row(self, value_list):
+        series = pd.Series(value_list, index=self.column_names)
+        self.results = self.results.append(series, ignore_index=True)
+
+    def sort_by_file(self):
+        return self.results.sort_values(by=['file'])
 
 
 if __name__ == "__main__":
@@ -14,37 +56,17 @@ if __name__ == "__main__":
     files = [folder + f for f in os.listdir(folder) if f.lower().endswith('.csv')]
     files.sort(key=os.path.getmtime)
 
-    Results = {}
-    column_names = ['file', 'TIME', 'max MEM', 'avg MEM', 'avg cpu']
-    result_table = pd.DataFrame(columns=column_names)
+    result_table = SummaryResults()
 
     for item in files:
-        data_table = pd.read_csv(item)
-
-        # Convert PID and COMMAND columns (might not be important)
-        # Convert time column
-        data_table['TIME'] = pd.to_datetime(data_table['TIME'], format='%M:%S.%f', errors='coerce')
-        # Convert all other columns to numbers
-        convert_mem_column(data_table)
-        # data_table['MEM'] = pd.to_numeric(data_table['MEM'], errors='coerce')
-        # data_table['user%'] = pd.to_numeric(data_table['user%'], errors='coerce')
-        # Drop the N/A rows
-        data_table.drop(['#MREGS', 'RPRVT', 'VPRVT','VSIZE', 'KPRVT', 'KSHRD'], axis=1, inplace=True)
-        data_table.dropna(inplace=True)
-        # Get the duration
-        duration = data_table['TIME'].max().time()
-        # Get the max MEM
-        max_memory = data_table['MEM'].max()
-        # Get the average user cpu
-        average_cpu = data_table['user%'].mean().round(2)
-        average_memory = data_table['MEM'].mean().round(1)
+        file_data = FileResults(item)
+        temp = file_data.get_summary_results(item)
         # Store these stats in a table, the file name should be in the table
-        series = pd.Series([item, duration, max_memory, average_memory, average_cpu], index=result_table.columns)
-        result_table = result_table.append(series, ignore_index=True)
+        result_table.add_row(temp)
 
     # Sort
-    result_table = result_table.sort_values(by=['file'])
+    result_table = result_table.sort_by_file()
 
     # Save results to file
-    file_name = 'Averages.csv'
+    file_name = '/Users/mfuncke/Downloads/Averages.csv'
     result_table.to_csv(file_name)
