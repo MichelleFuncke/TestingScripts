@@ -5,6 +5,7 @@ import os
 class FileResults(object):
     """The class handles reading data from a file and formatting it"""
     def __init__(self, file_name):
+        self.file_name = file_name
         self.data_table = pd.read_csv(file_name)
 
         self.__convert_time_column()
@@ -24,7 +25,9 @@ class FileResults(object):
         columns = ['#MREGS', 'RPRVT', 'VPRVT', 'VSIZE', 'KPRVT', 'KSHRD']
         self.data_table.drop(columns, axis=1, inplace=True)
 
-    def get_summary_results(self, file_name):
+    def get_summary_results(self):
+        # Get just the file name not the full path
+        file_name = os.path.basename(self.file_name)
         # Get the duration
         duration = self.data_table['TIME'].max().time()
         # Get the max MEM
@@ -51,16 +54,17 @@ class SummaryResults(object):
 
 if __name__ == "__main__":
     # Read data from file
-    script = '/Users/mfuncke/Downloads/ProjectStatusDump'
-    folder = F'{script}/formatted_results/'
-    files = [folder + f for f in os.listdir(folder) if f.lower().endswith('.csv')]
+    parent_directory_on_pc = '/Users/mfuncke/Downloads/'
+    test_run_folder = 'ProjectStatusDump'
+    full_path_to_formatted = os.path.join(parent_directory_on_pc, test_run_folder, 'formatted_results')
+    files = [os.path.join(full_path_to_formatted, f) for f in os.listdir(full_path_to_formatted) if f.lower().endswith('.csv')]
     files.sort(key=os.path.getmtime)
 
     result_table = SummaryResults()
 
     for item in files:
         file_data = FileResults(item)
-        temp = file_data.get_summary_results(item)
+        temp = file_data.get_summary_results()
         # Store these stats in a table, the file name should be in the table
         result_table.add_row(temp)
 
@@ -68,5 +72,5 @@ if __name__ == "__main__":
     result_table = result_table.sort_by_file()
 
     # Save results to file
-    file_name = '/Users/mfuncke/Downloads/Averages.csv'
-    result_table.to_csv(file_name)
+    averages_file_path = os.path.join(parent_directory_on_pc, 'Averages.csv')
+    result_table.to_csv(averages_file_path)
