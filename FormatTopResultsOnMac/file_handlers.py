@@ -92,7 +92,7 @@ class ProcessSelector(object):
     def __grab_process_from_file(self, file_name):
         with open(file_name, 'r') as f:
             contents = f.readlines()
-        processes = self.__grab_all_python_processes(contents)
+        processes = self.__grab_all_specific_processes(contents)
 
         for line in processes:
             if line not in self.process_dic.keys():
@@ -100,7 +100,7 @@ class ProcessSelector(object):
             else:
                 self.process_dic[line] += 1
 
-    def __grab_all_python_processes(self, file_contents):
+    def __grab_all_specific_processes(self, file_contents):
         process_lines = []
         for line in file_contents:
             if self.process_name in line:

@@ -29,14 +29,14 @@ def __extract_top_results_and_save_to_file(file_list, final_file_full_path):
         headers_flag = False
 
 
-def format_top_result_in_multiple_directories(full_path_to_parent_dir, test_script_name):
+def top_results_in_multidirs(full_path_to_parent_dir, test_script_name, full_path_to_final_results):
     # Get all the folders in the location
     directories = __get_all_directories(full_path_to_parent_dir)
     for directory in directories:
         full_path_to_dir = os.path.join(full_path_to_parent_dir, directory)
         files = __get_all_files_in_dir(full_path_to_dir)
 
-        final_file_full_path = os.path.join(full_path_to_parent_dir, 'formatted_results', F'{test_script_name}_{directory}.csv')
+        final_file_full_path = os.path.join(full_path_to_final_results, F'{test_script_name}_{directory}.csv')
         __extract_top_results_and_save_to_file(files, final_file_full_path)
 
 
@@ -45,5 +45,6 @@ if __name__ == "__main__":
     parent_directory_on_pc = '/Users/mfuncke/Downloads/'
     test_run_folder = 'ProjectStatusDump'
     full_path_to_test = os.path.join(parent_directory_on_pc, test_run_folder)
+    full_path_to_formatted = os.path.join(full_path_to_test, 'formatted_results')
 
-    format_top_result_in_multiple_directories(full_path_to_test, test_run_folder)
+    top_results_in_multidirs(full_path_to_test, test_run_folder, full_path_to_formatted)

@@ -63,7 +63,7 @@ class SummaryResults(object):
         self.results.to_csv(file_name)
 
 
-def calculate_averages(dir_path, results_path):
+def averages(dir_path, results_path):
     files = [os.path.join(dir_path, f) for f in os.listdir(dir_path) if f.lower().endswith('.csv')]
     files.sort(key=os.path.getmtime)
 
@@ -82,4 +82,4 @@ if __name__ == "__main__":
     full_path_to_formatted = os.path.join(parent_directory_on_pc, test_run_folder, 'formatted_results')
     averages_file_path = os.path.join(parent_directory_on_pc, 'Averages.csv')
 
-    calculate_averages(full_path_to_formatted, averages_file_path)
+    averages(full_path_to_formatted, averages_file_path)

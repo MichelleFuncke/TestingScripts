@@ -1,6 +1,6 @@
 import os
-import ScrubTopResults_updated
-import AnalysResults
+import format_raw_files
+import perform_calculations
 
 
 if __name__ == "__main__":
@@ -14,6 +14,6 @@ if __name__ == "__main__":
     averages_file_path = os.path.join(parent_directory_on_pc, 'Averages.csv')
 
     # Perform the actions to create the formatted results
-    ScrubTopResults_updated.format_top_result_in_multiple_directories(full_path_to_test, test_run_folder)
+    format_raw_files.top_results_in_multidirs(full_path_to_test, test_run_folder, full_path_to_formatted)
     # Perform the actions to create averages.csv
-    AnalysResults.calculate_averages(full_path_to_formatted, averages_file_path)
+    perform_calculations.averages(full_path_to_formatted, averages_file_path)
